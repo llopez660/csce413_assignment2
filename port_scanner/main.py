@@ -19,6 +19,9 @@ TODO for students:
 
 import socket
 import sys
+import concurrent.futures
+import argparse
+import ipaddress
 
 
 def scan_port(target, port, timeout=1.0):
@@ -35,18 +38,23 @@ def scan_port(target, port, timeout=1.0):
     """
     try:
         # TODO: Create a socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # TODO: Set timeout
+        s.settimeout(timeout)
         # TODO: Try to connect to target:port
+        connection = s.connect_ex((target, port))
         # TODO: Close the socket
+        s.close()
         # TODO: Return True if connection successful
+        return connection == 0 
 
-        pass  # Remove this and implement
+        #pass  # Remove this and implement
 
     except (socket.timeout, ConnectionRefusedError, OSError):
         return False
 
 
-def scan_range(target, start_port, end_port):
+def scan_range(target, start_port, end_port, max_threads=2000):
     """
     Scan a range of ports on the target host
 
@@ -66,12 +74,27 @@ def scan_range(target, start_port, end_port):
     # TODO: Implement the scanning logic
     # Hint: Loop through port range and call scan_port()
     # Hint: Consider using threading for better performance
+    
 
-    for port in range(start_port, end_port + 1):
-        # TODO: Scan this port
-        # TODO: If open, add to open_ports list
-        # TODO: Print progress (optional)
-        pass  # Remove this and implement
+    
+    with concurrent.futures.ThreadPoolExecutor(max_threads) as threads:
+        ports_threads = {
+            # TODO: Scan this port
+            threads.submit(scan_port,target,port): port
+            for port in range(start_port,end_port +1)
+        }
+
+        for finished_thread in concurrent.futures.as_completed(ports_threads):
+            port = ports_threads[finished_thread]
+
+            is_port_open = finished_thread.result()
+
+            # TODO: If open, add to open_ports list
+            if is_port_open == True:
+                open_ports.append(port)
+
+            # TODO: Print progress (optional)
+            #pass  # Remove this and implement
 
     return open_ports
 
@@ -79,28 +102,58 @@ def scan_range(target, start_port, end_port):
 def main():
     """Main function"""
     # TODO: Parse command-line arguments
-    # TODO: Validate inputs
-    # TODO: Call scan_range()
-    # TODO: Display results
 
-    # Example usage (you should improve this):
-    if len(sys.argv) < 2:
-        print("Usage: python3 port_scanner_template.py <target>")
-        print("Example: python3 port_scanner_template.py 172.20.0.10")
+    parser = argparse.ArgumentParser()
+
+    # Command line arguments
+    parser.add_argument("--target", required=True)
+    parser.add_argument("--ports", required = True)
+    parser.add_argument("--threads", type=int, default=100)
+
+    args = parser.parse_args()
+    # TODO: Validate inputs
+
+    # Validate target arg 
+    targets = []
+    if "/" in args.target:
+        # Network range
+        try:
+            network = ipaddress.ip_network(args.target, strict=False)
+            targets = [str(ip) for ip in network.hosts()]
+        except ValueError:
+            print("Error: Invalid target argument.")
+            sys.exit(1)
+    else:
+        # IP 
+        targets = [args.target]
+
+    # Validate port arg 
+    try:
+        if "-" in args.ports:
+            start_port, end_port = map(int, args.ports.split("-"))
+        else:
+            start_port = int(args.ports)
+            end_port = int(args.ports)
+    except ValueError:
+        print("Error: Invalid ports argument")
         sys.exit(1)
 
-    target = sys.argv[1]
-    start_port = 1
-    end_port = 1024  # Scan first 1024 ports by default
+    
+    # TODO: Call scan_range()
+    total_open_ports = 0
+    
+    for target in targets:
+        open_ports = scan_range(target, start_port, end_port, args.threads)
 
-    print(f"[*] Starting port scan on {target}")
-
-    open_ports = scan_range(target, start_port, end_port)
+        # TODO: Display results
+        if open_ports:
+            print(f"\n[+] Results for {target}:")
+            for port in open_ports:
+                print(f"    Port {port}: open")
+            total_open_ports += len(open_ports)
 
     print(f"\n[+] Scan complete!")
-    print(f"[+] Found {len(open_ports)} open ports:")
-    for port in open_ports:
-        print(f"    Port {port}: open")
+    print(f"[+] Found {total_open_ports} open ports:")
 
 
 if __name__ == "__main__":
