@@ -1,14 +1,4 @@
-## MITM Starter Template
+### My Findings
+I intercepted the network using tcpdump and I was able to find the authentication token in order to find the third flag. I was also able to see the specific sql queries being made to the database in plain text and I was able to see the resposnes to the queries. 
 
-This directory is a starter template for the MITM portion of the assignment.
-
-### What you need to implement
-- Capture traffic between the web app and database.
-- Analyze packets for sensitive data and explain the impact.
-- Record your findings.
-- Include evidence (pcap files or screenshots) alongside your report.
-
-### Getting started
-1. Run your capture workflow from this directory or the repo root.
-2. Save artifacts (pcap or screenshots) in this folder.
-3. Document everything.
+I documented the actual tcpdump inside the mitm/capture.pcap file and you are able to see all where I found the information.
