@@ -111,6 +111,12 @@ services:
       - 1.1.1.1
     cap_add:
       - NET_ADMIN
+      - NET_RAW
+    ports:
+      - "2222:2222"
+      - "1234:1234"
+      - "5678:5678"
+      - "9012:9012"
     networks:
       vulnerable_network:
         ipv4_address: 172.20.0.40
