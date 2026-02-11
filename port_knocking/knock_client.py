@@ -4,13 +4,14 @@
 import argparse
 import socket
 import time
+import sys
 
 DEFAULT_KNOCK_SEQUENCE = [1234, 5678, 9012]
-DEFAULT_PROTECTED_PORT = 2222
+DEFAULT_PROTECTED_PORT = 3306
 DEFAULT_DELAY = 0.3
 
 
-def send_knock(target, port, delay):
+def send_knock(target, port, delay = DEFAULT_DELAY):
     """Send a single knock to the target port."""
     # TODO: Choose UDP or TCP knocks based on your design.
     # Example TCP knock stub:
@@ -22,7 +23,7 @@ def send_knock(target, port, delay):
     time.sleep(delay)
 
 
-def perform_knock_sequence(target, sequence, delay):
+def perform_knock_sequence(target, sequence, delay  = DEFAULT_DELAY):
     """Send the full knock sequence."""
     for port in sequence:
         send_knock(target, port, delay)
@@ -76,6 +77,7 @@ def main():
     perform_knock_sequence(args.target, sequence, args.delay)
 
     if args.check:
+        time.sleep(1)
         check_protected_port(args.target, args.protected_port)
 
 

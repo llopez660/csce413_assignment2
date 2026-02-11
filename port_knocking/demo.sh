@@ -4,7 +4,7 @@ set -euo pipefail
 
 TARGET_IP=${1:-172.20.0.40}
 SEQUENCE=${2:-"1234,5678,9012"}
-PROTECTED_PORT=${3:-2222}
+PROTECTED_PORT=${3:-3306}
 
 echo "[1/3] Attempting protected port before knocking"
 nc -z -v "$TARGET_IP" "$PROTECTED_PORT" || true
